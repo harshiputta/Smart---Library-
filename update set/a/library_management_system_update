@@ -1,0 +1,562 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<unload unload_date="2026-07-06 17:26:00">
+  <!-- Update Set Header Record -->
+  <sys_update_set action="INSERT_OR_UPDATE">
+    <application display_value="Global">global</application>
+    <description>AI-Based Library Management System (LMS) script files, business rules, client scripts, scheduled jobs, and utilities.</description>
+    <name>Library Management System Update Set</name>
+    <release/>
+    <state>complete</state>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-07-06 17:26:00</sys_created_on>
+    <sys_id>bfcb62861a7e407499695e55058abe7d</sys_id>
+    <sys_mod_count>0</sys_mod_count>
+    <sys_updated_by>admin</sys_updated_by>
+    <sys_updated_on>2026-07-06 17:26:00</sys_updated_on>
+  </sys_update_set>
+
+  <!-- 1. Script Include: LibraryUtils -->
+  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customer</category>
+    <comments/>
+    <created_by>admin</created_by>
+    <created_on>2026-07-06 17:26:00</created_on>
+    <name>sys_script_include_1c8a147e4f8d220000d02b8d0210c732</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_script_include">
+  <sys_script_include action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <api_name>global.LibraryUtils</api_name>
+    <caller_access/>
+    <client_callable>false</client_callable>
+    <description>Reusable server-side functions for managing books, borrow requests, availability, and transactions.</description>
+    <name>LibraryUtils</name>
+    <script><![CDATA[/**
+ * Script Include: LibraryUtils
+ * Description: Reusable server-side functions for managing books, borrow requests, availability, and transactions.
+ * Scope: Global
+ */
+var LibraryUtils = Class.create();
+LibraryUtils.prototype = {
+    initialize: function() {
+    },
+
+    isBookAvailable: function(bookSysId) {
+        if (!bookSysId) return false;
+
+        var bookGR = new GlideRecord('u_book');
+        if (bookGR.get(bookSysId)) {
+            var availableCopies = parseInt(bookGR.getValue('u_available_copies'), 10) || 0;
+            var status = bookGR.getValue('u_status');
+            
+            return (availableCopies > 0 && status === 'available');
+        }
+        return false;
+    },
+
+    decrementBookCopies: function(bookSysId) {
+        if (!bookSysId) return false;
+
+        var bookGR = new GlideRecord('u_book');
+        if (bookGR.get(bookSysId)) {
+            var availableCopies = parseInt(bookGR.getValue('u_available_copies'), 10) || 0;
+            
+            if (availableCopies <= 0) {
+                gs.error("LibraryUtils: Cannot decrement available copies. Already 0 for book: " + bookGR.getValue('u_title'));
+                return false;
+            }
+
+            var newCount = availableCopies - 1;
+            bookGR.setValue('u_available_copies', newCount);
+
+            if (newCount === 0) {
+                bookGR.setValue('u_status', 'borrowed');
+            }
+
+            bookGR.update();
+            gs.info("LibraryUtils: Successfully decremented copies for book: " + bookGR.getValue('u_title') + ". New count: " + newCount);
+            return true;
+        }
+        return false;
+    },
+
+    incrementBookCopies: function(bookSysId) {
+        if (!bookSysId) return false;
+
+        var bookGR = new GlideRecord('u_book');
+        if (bookGR.get(bookSysId)) {
+            var availableCopies = parseInt(bookGR.getValue('u_available_copies'), 10) || 0;
+            var totalCopies = parseInt(bookGR.getValue('u_total_copies'), 10) || 0;
+
+            if (availableCopies >= totalCopies) {
+                gs.warn("LibraryUtils: Available copies cannot exceed total copies for book: " + bookGR.getValue('u_title'));
+                bookGR.setValue('u_available_copies', totalCopies);
+            } else {
+                bookGR.setValue('u_available_copies', availableCopies + 1);
+            }
+
+            bookGR.setValue('u_status', 'available');
+            
+            bookGR.update();
+            gs.info("LibraryUtils: Successfully incremented copies for book: " + bookGR.getValue('u_title') + ". New count: " + bookGR.getValue('u_available_copies'));
+            return true;
+        }
+        return false;
+    },
+
+    validateBookCounts: function(bookGR) {
+        if (!bookGR) return "No book record provided.";
+
+        var total = parseInt(bookGR.getValue('u_total_copies'), 10);
+        var available = parseInt(bookGR.getValue('u_available_copies'), 10);
+
+        if (isNaN(total) || total < 0) {
+            return "Total copies cannot be empty or negative.";
+        }
+        if (isNaN(available) || available < 0) {
+            return "Available copies cannot be empty or negative.";
+        }
+        if (available > total) {
+            return "Available copies cannot exceed total copies.";
+        }
+
+        return null;
+    },
+
+    hasOverdueRequests: function(userSysId) {
+        if (!userSysId) return false;
+
+        var requestGR = new GlideRecord('u_borrow_request');
+        requestGR.addQuery('u_student', userSysId);
+        requestGR.addQuery('u_status', 'overdue');
+        requestGR.query();
+
+        return requestGR.hasNext();
+    },
+
+    type: 'LibraryUtils'
+};]]]]><![CDATA[></script>
+    <sys_class_name>sys_script_include</sys_class_name>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-07-06 17:26:00</sys_created_on>
+    <sys_id>1c8a147e4f8d220000d02b8d0210c732</sys_id>
+    <sys_mod_count>0</sys_mod_count>
+    <sys_name>LibraryUtils</sys_name>
+    <sys_package display_value="Global">global</sys_package>
+    <sys_policy/>
+    <sys_scope display_value="Global">global</sys_scope>
+    <sys_update_name>sys_script_include_1c8a147e4f8d220000d02b8d0210c732</sys_update_name>
+    <sys_updated_by>admin</sys_updated_by>
+    <sys_updated_on>2026-07-06 17:26:00</sys_updated_on>
+  </sys_script_include>
+</record_update>]]></payload>
+    <payload_hash>-1842099304</payload_hash>
+    <record_name>LibraryUtils</record_name>
+    <reverted_from/>
+    <source>bfcb62861a7e407499695e55058abe7d</source>
+    <type>Script Include</type>
+    <update_domain>global</update_domain>
+    <update_guid>2c8a147e4f8d220000d02b8d0210c733</update_guid>
+    <update_guid_history/>
+    <update_set display_value="Library Management System Update Set">bfcb62861a7e407499695e55058abe7d</update_set>
+  </sys_update_xml>
+
+  <!-- 2. Business Rule: Manage Borrow Request -->
+  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customer</category>
+    <comments/>
+    <created_by>admin</created_by>
+    <created_on>2026-07-06 17:26:00</created_on>
+    <name>sys_script_acb4a123dfa234000df87b8d0298ea12</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sys_script">
+  <sys_script action="INSERT_OR_UPDATE">
+    <abort_action>false</abort_action>
+    <access>package_private</access>
+    <action_delete>false</action_delete>
+    <action_insert>true</action_insert>
+    <action_query>false</action_query>
+    <action_update>true</action_update>
+    <active>true</active>
+    <add_message>false</add_message>
+    <advanced>true</advanced>
+    <change_fields>false</change_fields>
+    <client_callable>false</client_callable>
+    <compare_fields>false</compare_fields>
+    <description>Manages u_borrow_request states, book copy adjustments, and date sets.</description>
+    <execute_function>false</execute_function>
+    <filter_condition/>
+    <is_rest>false</is_rest>
+    <message/>
+    <name>Manage Borrow Request</name>
+    <order>100</order>
+    <register_only>false</register_only>
+    <run_as>user</run_as>
+    <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+    var utils = new LibraryUtils();
+
+    if (current.isNewRecord()) {
+        if (!current.u_student) {
+            current.u_student = gs.getUserID();
+        }
+        if (!current.u_request_date) {
+            current.u_request_date = gs.nowDateTime();
+        }
+
+        var isAvail = utils.isBookAvailable(current.u_book);
+        if (!isAvail) {
+            gs.addErrorMessage("Sorry, this book is currently not available for borrowing.");
+            current.setAbortAction(true);
+            return;
+        }
+
+        if (utils.hasOverdueRequests(current.u_student)) {
+            gs.addErrorMessage("You cannot request new books while you have overdue items.");
+            current.setAbortAction(true);
+            return;
+        }
+
+        if (!current.assignment_group) {
+            var groupGR = new GlideRecord('sys_user_group');
+            groupGR.addQuery('name', 'Librarians');
+            groupGR.query();
+            if (groupGR.next()) {
+                current.assignment_group = groupGR.getUniqueValue();
+            }
+        }
+    }
+
+    var statusChangedToBorrowed = (current.u_status == 'borrowed' && (previous == null || previous.u_status != 'borrowed'));
+    var statusChangedToApproved = (current.u_status == 'approved' && (previous == null || previous.u_status != 'approved'));
+    
+    if (statusChangedToBorrowed || statusChangedToApproved) {
+        if (!current.u_approval_date) {
+            current.u_approval_date = gs.nowDateTime();
+        }
+        if (!current.u_due_date) {
+            var gDate = new GlideDateTime();
+            gDate.addDaysUTC(14);
+            current.u_due_date = gDate.getDate();
+        }
+
+        var decSuccess = utils.decrementBookCopies(current.u_book);
+        if (!decSuccess && statusChangedToApproved) {
+            gs.addErrorMessage("Unable to approve request: Book copies could not be decremented.");
+            current.setAbortAction(true);
+            return;
+        }
+    }
+
+    var statusChangedToReturned = (current.u_status == 'returned' && (previous == null || previous.u_status != 'returned'));
+    if (statusChangedToReturned) {
+        if (!current.u_return_date) {
+            current.u_return_date = gs.nowDateTime();
+        }
+        var incSuccess = utils.incrementBookCopies(current.u_book);
+        if (!incSuccess) {
+            gs.warn("LibraryUtils: Failed to increment book copies on request " + current.number);
+        }
+    }
+
+    var statusChangedToRejected = (current.u_status == 'rejected' && (previous == null || previous.u_status != 'rejected'));
+    if (statusChangedToRejected) {
+        if (!current.u_approval_date) {
+            current.u_approval_date = gs.nowDateTime();
+        }
+    }
+})(current, previous);]]]]><![CDATA[></script>
+    <sys_class_name>sys_script</sys_class_name>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-07-06 17:26:00</sys_created_on>
+    <sys_domain>global</sys_domain>
+    <sys_domain_path>/</sys_domain_path>
+    <sys_id>acb4a123dfa234000df87b8d0298ea12</sys_id>
+    <sys_mod_count>0</sys_mod_count>
+    <sys_name>Manage Borrow Request</sys_name>
+    <sys_overrides/>
+    <sys_package display_value="Global">global</sys_package>
+    <sys_policy/>
+    <sys_scope display_value="Global">global</sys_scope>
+    <sys_update_name>sys_script_acb4a123dfa234000df87b8d0298ea12</sys_update_name>
+    <sys_updated_by>admin</sys_updated_by>
+    <sys_updated_on>2026-07-06 17:26:00</sys_updated_on>
+    <template/>
+    <when>before</when>
+  </sys_script>
+</record_update>]]></payload>
+    <payload_hash>-983281043</payload_hash>
+    <record_name>Manage Borrow Request</record_name>
+    <reverted_from/>
+    <source>bfcb62861a7e407499695e55058abe7d</source>
+    <type>Business Rule</type>
+    <update_domain>global</update_domain>
+    <update_guid>bcb4a123dfa234000df87b8d0298ea13</update_guid>
+    <update_guid_history/>
+    <update_set display_value="Library Management System Update Set">bfcb62861a7e407499695e55058abe7d</update_set>
+  </sys_update_xml>
+
+  <!-- 3. Business Rule: Book Validation -->
+  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customer</category>
+    <comments/>
+    <created_by>admin</created_by>
+    <created_on>2026-07-06 17:26:00</created_on>
+    <name>sys_script_dcd4a123dfa234000df87b8d0298ea99</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<record_update sys_domain="global" table="sys_script">
+  <sys_script action="INSERT_OR_UPDATE">
+    <abort_action>false</abort_action>
+    <access>package_private</access>
+    <action_delete>false</action_delete>
+    <action_insert>true</action_insert>
+    <action_query>false</action_query>
+    <action_update>true</action_update>
+    <active>true</active>
+    <add_message>false</add_message>
+    <advanced>true</advanced>
+    <change_fields>false</change_fields>
+    <client_callable>false</client_callable>
+    <compare_fields>false</compare_fields>
+    <description>Ensures book copy limits are valid and sets book status depending on copies count.</description>
+    <execute_function>false</execute_function>
+    <filter_condition/>
+    <is_rest>false</is_rest>
+    <message/>
+    <name>Book Validation</name>
+    <order>100</order>
+    <register_only>false</register_only>
+    <run_as>user</run_as>
+    <script><![CDATA[(function executeRule(current, previous /*null when async*/) {
+    var utils = new LibraryUtils();
+    
+    var errorMsg = utils.validateBookCounts(current);
+    if (errorMsg) {
+        gs.addErrorMessage("Book Validation Failed: " + errorMsg);
+        current.setAbortAction(true);
+        return;
+    }
+
+    var available = parseInt(current.getValue('u_available_copies'), 10);
+    var status = current.getValue('u_status');
+
+    if (available === 0 && status === 'available') {
+        current.setValue('u_status', 'borrowed');
+    } else if (available > 0 && status === 'borrowed') {
+        current.setValue('u_status', 'available');
+    }
+})(current, previous);]]]]><![CDATA[></script>
+    <sys_class_name>sys_script</sys_class_name>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-07-06 17:26:00</sys_created_on>
+    <sys_domain>global</sys_domain>
+    <sys_domain_path>/</sys_domain_path>
+    <sys_id>dcd4a123dfa234000df87b8d0298ea99</sys_id>
+    <sys_mod_count>0</sys_mod_count>
+    <sys_name>Book Validation</sys_name>
+    <sys_overrides/>
+    <sys_package display_value="Global">global</sys_package>
+    <sys_policy/>
+    <sys_scope display_value="Global">global</sys_scope>
+    <sys_update_name>sys_script_dcd4a123dfa234000df87b8d0298ea99</sys_update_name>
+    <sys_updated_by>admin</sys_updated_by>
+    <sys_updated_on>2026-07-06 17:26:00</sys_updated_on>
+    <template/>
+    <when>before</when>
+  </sys_script>
+</record_update>]]></payload>
+    <payload_hash>302910482</payload_hash>
+    <record_name>Book Validation</record_name>
+    <reverted_from/>
+    <source>bfcb62861a7e407499695e55058abe7d</source>
+    <type>Business Rule</type>
+    <update_domain>global</update_domain>
+    <update_guid>ccd4a123dfa234000df87b8d0298ea9a</update_guid>
+    <update_guid_history/>
+    <update_set display_value="Library Management System Update Set">bfcb62861a7e407499695e55058abe7d</update_set>
+  </sys_update_xml>
+
+  <!-- 4. Client Script: Borrow Request Form Logic -->
+  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customer</category>
+    <comments/>
+    <created_by>admin</created_by>
+    <created_on>2026-07-06 17:26:00</created_on>
+    <name>sys_client_script_ecc4a123dfa234000df87b8d0298ea55</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sys_client_script">
+  <sys_client_script action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <applies_extended>false</applies_extended>
+    <condition/>
+    <description>Locks workflow fields for students, sets default student user, and manages field read-only states on load.</description>
+    <field/>
+    <global>true</global>
+    <messages/>
+    <name>Borrow Request Form Logic</name>
+    <order/>
+    <script><![CDATA[function onLoad() {
+    var isLibrarian = g_user.hasRole('u_library_librarian');
+    var status = g_form.getValue('u_status');
+    var isNew = g_form.isNewRecord();
+
+    if (!isLibrarian) {
+        g_form.setReadOnly('u_status', true);
+        g_form.setReadOnly('u_approval_date', true);
+        g_form.setReadOnly('u_due_date', true);
+        g_form.setReadOnly('u_return_date', true);
+        g_form.setReadOnly('u_librarian_comments', true);
+        g_form.setReadOnly('assignment_group', true);
+        g_form.setReadOnly('assigned_to', true);
+        g_form.setReadOnly('u_student', true);
+
+        if (!isNew && status !== 'pending') {
+            g_form.setReadOnly('u_book', true);
+            g_form.setReadOnly('u_request_date', true);
+        }
+    } else {
+        g_form.setReadOnly('u_approval_date', true);
+        g_form.setReadOnly('u_return_date', true);
+        g_form.setReadOnly('u_request_date', true);
+
+        if (status === 'returned') {
+            g_form.setReadOnly('u_student', true);
+            g_form.setReadOnly('u_book', true);
+            g_form.setReadOnly('u_status', true);
+            g_form.setReadOnly('u_due_date', true);
+            g_form.setReadOnly('u_librarian_comments', true);
+            g_form.setReadOnly('assignment_group', true);
+            g_form.setReadOnly('assigned_to', true);
+        }
+    }
+
+    if (isNew) {
+        if (g_form.getValue('u_student') === '') {
+            g_form.setValue('u_student', g_user.userID, g_user.getFullName());
+        }
+    }
+}]]></script>
+    <sys_class_name>sys_client_script</sys_class_name>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-07-06 17:26:00</sys_created_on>
+    <sys_id>ecc4a123dfa234000df87b8d0298ea55</sys_id>
+    <sys_mod_count>0</sys_mod_count>
+    <sys_name>Borrow Request Form Logic</sys_name>
+    <sys_overrides/>
+    <sys_package display_value="Global">global</sys_package>
+    <sys_policy/>
+    <sys_scope display_value="Global">global</sys_scope>
+    <sys_update_name>sys_client_script_ecc4a123dfa234000df87b8d0298ea55</sys_update_name>
+    <sys_updated_by>admin</sys_updated_by>
+    <sys_updated_on>2026-07-06 17:26:00</sys_updated_on>
+    <table>u_borrow_request</table>
+    <type>onLoad</type>
+    <ui_type>10</ui_type>
+  </sys_client_script>
+</record_update>]]></payload>
+    <payload_hash>409204922</payload_hash>
+    <record_name>Borrow Request Form Logic</record_name>
+    <reverted_from/>
+    <source>bfcb62861a7e407499695e55058abe7d</source>
+    <type>Client Script</type>
+    <update_domain>global</update_domain>
+    <update_guid>dcc4a123dfa234000df87b8d0298ea56</update_guid>
+    <update_guid_history/>
+    <update_set display_value="Library Management System Update Set">bfcb62861a7e407499695e55058abe7d</update_set>
+  </sys_update_xml>
+
+  <!-- 5. Scheduled Script Execution: Check Overdue Requests -->
+  <sys_update_xml action="INSERT_OR_UPDATE">
+    <action>INSERT_OR_UPDATE</action>
+    <application display_value="Global">global</application>
+    <category>customer</category>
+    <comments/>
+    <created_by>admin</created_by>
+    <created_on>2026-07-06 17:26:00</created_on>
+    <name>sysauto_script_abc4a123dfa234000df87b8d0298ea88</name>
+    <payload><![CDATA[<?xml version="1.0" encoding="UTF-8"?>
+<record_update table="sysauto_script">
+  <sysauto_script action="INSERT_OR_UPDATE">
+    <active>true</active>
+    <business_calendar/>
+    <condition/>
+    <conditional>false</conditional>
+    <entered_time/>
+    <name>Check Overdue Requests</name>
+    <offset/>
+    <offset_type>0</offset_type>
+    <run_as display_value="System Administrator">6816f79cc0a8016401c5a33be04be441</run_as>
+    <run_as_tz/>
+    <run_dayofmonth>1</run_dayofmonth>
+    <run_dayofweek>1</run_dayofweek>
+    <run_period/>
+    <run_start>2026-07-06 17:26:00</run_start>
+    <run_time>1970-01-01 00:00:00</run_time>
+    <run_type>daily</run_type>
+    <script><![CDATA[(function() {
+    gs.info("LMS: Starting CheckOverdueRequests Scheduled Job.");
+    var today = new GlideDate();
+    
+    var overdueRequests = new GlideRecord('u_borrow_request');
+    overdueRequests.addQuery('u_status', 'borrowed');
+    overdueRequests.addQuery('u_due_date', '<', today);
+    overdueRequests.query();
+
+    var overdueCount = 0;
+    while (overdueRequests.next()) {
+        overdueRequests.setValue('u_status', 'overdue');
+        overdueRequests.update();
+        gs.eventQueue('u_borrow_request.overdue', overdueRequests, overdueRequests.getValue('u_student'), overdueRequests.getValue('u_due_date'));
+        overdueCount++;
+    }
+    gs.info("LMS: Completed marking overdue requests. Total marked overdue: " + overdueCount);
+
+    var dueSoonDate = new GlideDate();
+    dueSoonDate.addDaysUTC(2);
+
+    var reminderRequests = new GlideRecord('u_borrow_request');
+    reminderRequests.addQuery('u_status', 'borrowed');
+    reminderRequests.addQuery('u_due_date', '=', dueSoonDate);
+    reminderRequests.query();
+
+    var reminderCount = 0;
+    while (reminderRequests.next()) {
+        gs.eventQueue('u_borrow_request.due_soon', reminderRequests, reminderRequests.getValue('u_student'), reminderRequests.getValue('u_due_date'));
+        reminderCount++;
+    }
+    gs.info("LMS: Completed sending due soon reminders. Total alerts queued: " + reminderCount);
+})();]]></script>
+    <sys_class_name>sysauto_script</sys_class_name>
+    <sys_created_by>admin</sys_created_by>
+    <sys_created_on>2026-07-06 17:26:00</sys_created_on>
+    <sys_id>abc4a123dfa234000df87b8d0298ea88</sys_id>
+    <sys_mod_count>0</sys_mod_count>
+    <sys_name>Check Overdue Requests</sys_name>
+    <sys_package display_value="Global">global</sys_package>
+    <sys_policy/>
+    <sys_scope display_value="Global">global</sys_scope>
+    <sys_update_name>sysauto_script_abc4a123dfa234000df87b8d0298ea88</sys_update_name>
+    <sys_updated_by>admin</sys_updated_by>
+    <sys_updated_on>2026-07-06 17:26:00</sys_updated_on>
+    <time_zone/>
+    <upgrade_safe>false</upgrade_safe>
+  </sysauto_script>
+</record_update>]]></payload>
+    <payload_hash>-201938491</payload_hash>
+    <record_name>Check Overdue Requests</record_name>
+    <reverted_from/>
+    <source>bfcb62861a7e407499695e55058abe7d</source>
+    <type>Scheduled Script Execution</type>
+    <update_domain>global</update_domain>
+    <update_guid>bbc4a123dfa234000df87b8d0298ea89</update_guid>
+    <update_guid_history/>
+    <update_set display_value="Library Management System Update Set">bfcb62861a7e407499695e55058abe7d</update_set>
+  </sys_update_xml>
+</unload>
