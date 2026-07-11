@@ -1,1 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ServiceNow Library Management System - Interactive Prototype</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app-container">
+    
+    <!-- Top Navigation Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292m0-14.25v14.25" />
+          </svg>
+        </div>
+        <div>
+          <h1>ServiceNow LMS</h1>
+          <p class="subtitle">Interactive Application Prototype</p>
+        </div>
+      </div>
+      
+      <!-- Role Selector and Seed Data controls -->
+      <div class="header-controls">
+        <div class="role-selector-container">
+          <label for="role-select">Active Role:</label>
+          <select id="role-select">
+            <option value="student">Student Portal</option>
+            <option value="librarian">Librarian Console</option>
+          </select>
+        </div>
+        <button id="reset-db-btn" class="btn btn-secondary">
+          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M16.023 9.348h4.992v-.001M2.985 19.644v-4.992m0 0h4.992m-4.993 0l3.181 3.183a8.25 8.25 0 0013.803-3.7M4.031 9.865a8.25 8.25 0 0113.803-3.7l3.181 3.182m0-4.991v4.99" />
+          </svg>
+          Reset Demo Data
+        </button>
+      </div>
+    </header>
 
+    <main class="app-content">
+
+      <!-- ========================================= -->
+      <!-- STUDENT VIEW PANEL -->
+      <!-- ========================================= -->
+      <section id="student-view" class="view-panel active">
+        
+        <div class="student-grid">
+          <!-- Left Column: Search & Catalog -->
+          <div class="catalog-section">
+            <div class="section-header">
+              <h2>Book Catalog</h2>
+              <div class="search-filters">
+                <input type="text" id="catalog-search" placeholder="Search title, author, ISBN...">
+                <select id="category-filter">
+                  <option value="all">All Categories</option>
+                  <option value="fiction">Fiction</option>
+                  <option value="non_fiction">Non-Fiction</option>
+                  <option value="science">Science</option>
+                  <option value="history">History</option>
+                  <option value="technology">Technology</option>
+                  <option value="biography">Biography</option>
+                  <option value="reference">Reference</option>
+                </select>
+              </div>
+            </div>
+            
+            <div class="book-cards-grid" id="book-cards-container">
+              <!-- Dynamically populated -->
+            </div>
+          </div>
+
+          <!-- Right Column: My Borrow Requests -->
+          <div class="history-section">
+            <div class="section-header">
+              <h2>My Borrow History</h2>
+              <span class="user-pill">Logged in: Student (Demo User)</span>
+            </div>
+            
+            <div class="table-container">
+              <table class="data-table" id="student-history-table">
+                <thead>
+                  <tr>
+                    <th>Req ID</th>
+                    <th>Book</th>
+                    <th>Request Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="student-history-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ========================================= -->
+      <!-- LIBRARIAN VIEW PANEL -->
+      <!-- ========================================= -->
+      <section id="librarian-view" class="view-panel">
+        
+        <!-- Scoreboard / Dashboard Metrics -->
+        <div class="scoreboard-grid">
+          <div class="score-card">
+            <div class="score-info">
+              <span class="score-label">Total Catalog Books</span>
+              <span class="score-value" id="stat-total-books">0</span>
+            </div>
+            <div class="score-icon purple">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6.042A8.967 8.967 0 006 3.75c-1.052 0-2.062.18-3 .512v14.25A8.987 8.987 0 016 18c2.305 0 4.408.867 6 2.292m0-14.25a8.966 8.966 0 016-2.292c1.052 0 2.062.18 3 .512v14.25A8.987 8.987 0 0018 18a8.967 8.967 0 00-6 2.292" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="score-card">
+            <div class="score-info">
+              <span class="score-label">Available Copies</span>
+              <span class="score-value" id="stat-avail-books">0</span>
+            </div>
+            <div class="score-icon green">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="score-card">
+            <div class="score-info">
+              <span class="score-label">Borrowed Copies</span>
+              <span class="score-value" id="stat-borrowed-books">0</span>
+            </div>
+            <div class="score-icon blue">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="score-card animate-pulse" id="pending-card">
+            <div class="score-info">
+              <span class="score-label">Pending Approval</span>
+              <span class="score-value" id="stat-pending-reqs">0</span>
+            </div>
+            <div class="score-icon orange">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
+
+          <div class="score-card" id="overdue-card">
+            <div class="score-info">
+              <span class="score-label">Overdue Books</span>
+              <span class="score-value" id="stat-overdue-reqs">0</span>
+            </div>
+            <div class="score-icon red">
+              <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m0-10.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.75c0 5.592 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.57-.598-3.75h-.152c-3.196 0-6.1-1.249-8.25-3.286zm0 13.036h.008v.008H12v-.008z" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="librarian-grid">
+          <!-- Top Row: Requests Approval Center -->
+          <div class="requests-section full-width">
+            <div class="section-header">
+              <h2>Librarian Request Action Center</h2>
+              <button id="trigger-overdue-job" class="btn btn-secondary">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="icon-sm">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                Run Scheduled Overdue Job
+              </button>
+            </div>
+            <div class="table-container">
+              <table class="data-table" id="librarian-requests-table">
+                <thead>
+                  <tr>
+                    <th>Req ID</th>
+                    <th>Student</th>
+                    <th>Book</th>
+                    <th>Req Date</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Comments/Rejection Reason</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="librarian-requests-body">
+                  <!-- Dynamically populated -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- Bottom Row: Split Catalog Management & Reports -->
+          <div class="manage-books-section">
+            <div class="section-header">
+              <h2>Book Inventory Management</h2>
+            </div>
+            <div class="card card-form">
+              <form id="add-book-form">
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="book-title">Book Title*</label>
+                    <input type="text" id="book-title" required placeholder="e.g., The Great Gatsby">
+                  </div>
+                  <div class="form-group">
+                    <label for="book-author">Author*</label>
+                    <input type="text" id="book-author" required placeholder="e.g., F. Scott Fitzgerald">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="book-isbn">ISBN*</label>
+                    <input type="text" id="book-isbn" required placeholder="e.g., 9780743273565">
+                  </div>
+                  <div class="form-group">
+                    <label for="book-category">Category</label>
+                    <select id="book-category">
+                      <option value="fiction">Fiction</option>
+                      <option value="non_fiction">Non-Fiction</option>
+                      <option value="science">Science</option>
+                      <option value="history">History</option>
+                      <option value="technology">Technology</option>
+                      <option value="biography">Biography</option>
+                      <option value="reference">Reference</option>
+                    </select>
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="book-publisher">Publisher</label>
+                    <input type="text" id="book-publisher" placeholder="e.g., Scribner">
+                  </div>
+                  <div class="form-group">
+                    <label for="book-year">Publication Year</label>
+                    <input type="number" id="book-year" min="1000" max="2100" placeholder="e.g., 1925">
+                  </div>
+                </div>
+                <div class="form-row">
+                  <div class="form-group">
+                    <label for="book-total">Total Copies*</label>
+                    <input type="number" id="book-total" min="1" value="3" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="book-shelf">Shelf Location</label>
+                    <input type="text" id="book-shelf" placeholder="e.g., Aisle 2, Shelf D">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label for="book-desc">Description</label>
+                  <textarea id="book-desc" rows="3" placeholder="Brief book summary..."></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary full-width">Add Book to Catalog</button>
+              </form>
+            </div>
+          </div>
+
+          <div class="reports-section">
+            <div class="section-header">
+              <h2>Dashboard Reports</h2>
+            </div>
+            
+            <div class="reports-tabs">
+              <button class="report-tab-btn active" data-report="by-category">Books by Category</button>
+              <button class="report-tab-btn" data-report="most-borrowed">Most Borrowed Books</button>
+            </div>
+
+            <div class="card report-card">
+              <!-- Report 1: Books by Category -->
+              <div id="report-by-category" class="report-panel active">
+                <h3>Catalog Categorization</h3>
+                <div class="chart-container">
+                  <div class="donut-chart-mock" id="category-donut-chart">
+                    <!-- Javascript generated donut/bars -->
+                  </div>
+                  <div class="chart-legend" id="category-legend">
+                    <!-- Legend -->
+                  </div>
+                </div>
+              </div>
+
+              <!-- Report 2: Most Borrowed Books -->
+              <div id="report-most-borrowed" class="report-panel">
+                <h3>Most Checked-out Books (Borrow Count)</h3>
+                <div class="bar-chart-mock" id="most-borrowed-chart">
+                  <!-- Bars -->
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </main>
+
+    <!-- Notification Toast Center -->
+    <div id="toast-container"></div>
+
+    <!-- Borrow Modal Confirmation -->
+    <div id="borrow-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h3>Submit Borrow Request</h3>
+          <span class="close-modal-btn">&times;</span>
+        </div>
+        <div class="modal-body">
+          <div class="modal-book-details">
+            <p><strong>Title:</strong> <span id="modal-book-title"></span></p>
+            <p><strong>Author:</strong> <span id="modal-book-author"></span></p>
+            <p><strong>ISBN:</strong> <span id="modal-book-isbn"></span></p>
+            <p><strong>Shelf Location:</strong> <span id="modal-book-shelf"></span></p>
+          </div>
+          <div class="form-group">
+            <label for="modal-due-date">Proposed Due Date (Default is 14 days)</label>
+            <input type="date" id="modal-due-date">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="modal-cancel-btn" class="btn btn-secondary">Cancel</button>
+          <button id="modal-submit-btn" class="btn btn-primary">Confirm Request</button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>
