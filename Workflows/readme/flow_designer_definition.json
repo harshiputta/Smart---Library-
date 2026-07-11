@@ -1,1 +1,92 @@
-
+{
+  "flowName": "Library Borrow Request Approval Flow",
+  "description": "Handles the lifecycle of a borrow request, assigning it to the Librarians group, generating approvals, updating book counts upon approval, and sending user notifications.",
+  "trigger": {
+    "type": "Record Created",
+    "table": "u_borrow_request",
+    "condition": "u_status=pending"
+  },
+  "actions": [
+    {
+      "step": 1,
+      "actionType": "Update Record",
+      "description": "Ensure the assignment group is set to Librarians.",
+      "inputs": {
+        "record": "Trigger -> Borrow Request Record",
+        "fields": {
+          "assignment_group": "Librarians Group (sys_id)"
+        }
+      }
+    },
+    {
+      "step": 2,
+      "actionType": "Ask For Approval",
+      "description": "Request approval from the Librarian assignment group.",
+      "inputs": {
+        "record": "Trigger -> Borrow Request Record",
+        "approvalRules": {
+          "approve": "Anyone from assignment_group approves",
+          "reject": "Anyone from assignment_group rejects"
+        }
+      }
+    },
+    {
+      "step": 3,
+      "actionType": "If Approval Approved",
+      "condition": "Step 2 -> Approval State == Approved",
+      "subActions": [
+        {
+          "step": "3.1",
+          "actionType": "Update Record",
+          "description": "Transition borrow request status to Borrowed, set approval date and calculate due date.",
+          "inputs": {
+            "record": "Trigger -> Borrow Request Record",
+            "fields": {
+              "u_status": "borrowed",
+              "u_approval_date": "Current Date/Time",
+              "u_due_date": "14 Days From Today"
+            }
+          }
+        },
+        {
+          "step": "3.2",
+          "actionType": "Send Email Notification",
+          "description": "Notify student that their request was approved.",
+          "inputs": {
+            "to": "Trigger -> Student Reference -> Email",
+            "subject": "Approved: Borrow Request for Book: [Book Title]",
+            "body": "Hello [Student Name],\n\nYour borrow request has been approved. You can collect your book from the library counter.\nDue Date: [Due Date]\n\nRegards,\nLibrary Admin"
+          }
+        }
+      ]
+    },
+    {
+      "step": 4,
+      "actionType": "If Approval Rejected",
+      "condition": "Step 2 -> Approval State == Rejected",
+      "subActions": [
+        {
+          "step": "4.1",
+          "actionType": "Update Record",
+          "description": "Set request status to Rejected.",
+          "inputs": {
+            "record": "Trigger -> Borrow Request Record",
+            "fields": {
+              "u_status": "rejected"
+            }
+          }
+        },
+        {
+          "step": "4.2",
+          "actionType": "Send Email Notification",
+          "description": "Notify student that their request was rejected.",
+          "inputs": {
+            "to": "Trigger -> Student Reference -> Email",
+            "subject": "Rejected: Borrow Request for Book: [Book Title]",
+            "body": "Hello [Student Name],\n\nWe regret to inform you that your request to borrow [Book Title] has been rejected.\nLibrarian Comments: [Librarian Comments]\n\nRegards,\nLibrary Admin"
+          }
+        }
+      ]
+    }
+  ]
+}
