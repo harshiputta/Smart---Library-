@@ -1,1 +1,127 @@
-
+{
+  "dashboard": {
+    "title": "Library Management Dashboard",
+    "owner": "u_library_librarian",
+    "tabs": [
+      {
+        "tabName": "Librarian Console",
+        "rolesAllowed": ["u_library_librarian"],
+        "widgets": [
+          {
+            "widgetType": "Score",
+            "title": "Total Books",
+            "table": "u_book",
+            "aggregate": "COUNT",
+            "filter": ""
+          },
+          {
+            "widgetType": "Score",
+            "title": "Available Books",
+            "table": "u_book",
+            "aggregate": "SUM",
+            "field": "u_available_copies",
+            "filter": "u_available_copies>0"
+          },
+          {
+            "widgetType": "Score",
+            "title": "Pending Requests",
+            "table": "u_borrow_request",
+            "aggregate": "COUNT",
+            "filter": "u_status=pending"
+          },
+          {
+            "widgetType": "Score",
+            "title": "Overdue Books",
+            "table": "u_borrow_request",
+            "aggregate": "COUNT",
+            "filter": "u_status=overdue"
+          },
+          {
+            "widgetType": "Report - Bar Chart",
+            "reportName": "Most Borrowed Books",
+            "table": "u_borrow_request",
+            "groupBy": "u_book",
+            "aggregate": "COUNT",
+            "filter": "u_statusINborrowed,returned,overdue",
+            "layout": "Row 2, Column 1"
+          },
+          {
+            "widgetType": "Report - List",
+            "reportName": "Overdue Books List",
+            "table": "u_borrow_request",
+            "columns": ["number", "u_student", "u_book", "u_due_date"],
+            "filter": "u_status=overdue",
+            "layout": "Row 2, Column 2"
+          }
+        ]
+      },
+      {
+        "tabName": "Student Portal",
+        "rolesAllowed": ["u_library_student", "u_library_librarian"],
+        "widgets": [
+          {
+            "widgetType": "Report - List",
+            "title": "My Borrowing History",
+            "table": "u_borrow_request",
+            "columns": ["number", "u_book", "u_request_date", "u_due_date", "u_status"],
+            "filter": "u_student=javascript:gs.getUserID()",
+            "layout": "Row 1, Column 1"
+          },
+          {
+            "widgetType": "Report - List",
+            "title": "Available Catalog",
+            "table": "u_book",
+            "columns": ["u_title", "u_author", "u_category", "u_available_copies", "u_shelf_location"],
+            "filter": "u_available_copies>0^u_status=available",
+            "layout": "Row 1, Column 2"
+          }
+        ]
+      }
+    ]
+  },
+  "reports": [
+    {
+      "name": "Most Borrowed Books",
+      "table": "u_borrow_request",
+      "type": "bar",
+      "groupBy": "u_book",
+      "filter": "u_statusINborrowed,returned,overdue"
+    },
+    {
+      "name": "Books Currently Borrowed",
+      "table": "u_borrow_request",
+      "type": "list",
+      "filter": "u_status=borrowed",
+      "fields": ["number", "u_student", "u_book", "u_due_date"]
+    },
+    {
+      "name": "Pending Approval Requests",
+      "table": "u_borrow_request",
+      "type": "list",
+      "filter": "u_status=pending",
+      "fields": ["number", "u_student", "u_book", "u_request_date"]
+    },
+    {
+      "name": "Overdue Books",
+      "table": "u_borrow_request",
+      "type": "list",
+      "filter": "u_status=overdue",
+      "fields": ["number", "u_student", "u_book", "u_due_date"]
+    },
+    {
+      "name": "Monthly Borrow Requests",
+      "table": "u_borrow_request",
+      "type": "trend",
+      "trendOn": "u_request_date",
+      "trendBy": "month",
+      "filter": ""
+    },
+    {
+      "name": "Books by Category",
+      "table": "u_book",
+      "type": "donut",
+      "groupBy": "u_category",
+      "filter": ""
+    }
+  ]
+}
