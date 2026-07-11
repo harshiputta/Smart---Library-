@@ -1,1 +1,77 @@
-
+{
+  "roles": [
+    {
+      "name": "u_library_student",
+      "description": "Library Student role. Allowed to view catalog, submit and manage own borrow requests."
+    },
+    {
+      "name": "u_library_librarian",
+      "description": "Library Librarian role. Full CRUD access on books, manage and approve all borrow requests, run reports."
+    }
+  ],
+  "acls": [
+    {
+      "table": "u_book",
+      "operation": "read",
+      "description": "Allows students and librarians to view books.",
+      "roles": ["u_library_student", "u_library_librarian"],
+      "condition": "u_status=available^ORu_status=borrowed"
+    },
+    {
+      "table": "u_book",
+      "operation": "create",
+      "description": "Allows only librarians to create new books.",
+      "roles": ["u_library_librarian"]
+    },
+    {
+      "table": "u_book",
+      "operation": "write",
+      "description": "Allows only librarians to update books.",
+      "roles": ["u_library_librarian"]
+    },
+    {
+      "table": "u_book",
+      "operation": "delete",
+      "description": "Allows only librarians to delete books.",
+      "roles": ["u_library_librarian"]
+    },
+    {
+      "table": "u_borrow_request",
+      "operation": "create",
+      "description": "Allows students and librarians to submit borrow requests.",
+      "roles": ["u_library_student", "u_library_librarian"]
+    },
+    {
+      "table": "u_borrow_request",
+      "operation": "read",
+      "description": "Allows students to view their own requests and librarians to view all requests.",
+      "roles": ["u_library_student", "u_library_librarian"],
+      "script": "if (gs.hasRole('u_library_librarian')) { answer = true; } else { answer = (current.u_student == gs.getUserID()); }"
+    },
+    {
+      "table": "u_borrow_request",
+      "operation": "write",
+      "description": "Allows librarians full write access. Students can only edit their own pending requests.",
+      "roles": ["u_library_student", "u_library_librarian"],
+      "script": "if (gs.hasRole('u_library_librarian')) { answer = true; } else { answer = (current.u_student == gs.getUserID() && current.u_status == 'pending'); }"
+    },
+    {
+      "table": "u_borrow_request.u_status",
+      "operation": "write",
+      "description": "Restricts approval state updates to Librarians only.",
+      "roles": ["u_library_librarian"]
+    },
+    {
+      "table": "u_borrow_request.u_due_date",
+      "operation": "write",
+      "description": "Restricts due date adjustments to Librarians only.",
+      "roles": ["u_library_librarian"]
+    },
+    {
+      "table": "u_borrow_request.u_librarian_comments",
+      "operation": "write",
+      "description": "Restricts comments updating to Librarians only.",
+      "roles": ["u_library_librarian"]
+    }
+  ]
+}
